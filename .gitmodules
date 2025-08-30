@@ -1,0 +1,3 @@
+[submodule "hibou"]
+	path = hibou
+	url = https://github.com/HistAI/hibou.git
