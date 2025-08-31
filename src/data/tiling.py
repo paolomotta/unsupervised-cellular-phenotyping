@@ -112,7 +112,7 @@ def crop_tile(img: np.ndarray, xywh: tuple[int, int, int, int]) -> np.ndarray:
     return img[y:y+h, x:x+w]
 
 
-def pad_to_size(img: np.ndarray, H: int, W: int, mode: str = "reflect") -> tuple[np.ndarray, tuple[int, int, int, int]]:
+def pad_to_size(img: np.ndarray, H: int, W: int, mode: str = "constant") -> tuple[np.ndarray, tuple[int, int, int, int]]:
     """
     Pad an image to reach the desired size (H, W).
 
