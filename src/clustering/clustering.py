@@ -141,7 +141,6 @@ def run_clustering(
     algo="kmeans",
     k=6,
     pca=50,
-    standardize=True,
     hdbscan_min_samples=10,
     hdbscan_min_cluster_size=50,
     umap=0,
@@ -160,8 +159,6 @@ def run_clustering(
         Number of clusters for KMeans.
     pca : int
         PCA dimensionality (0 to skip).
-    standardize : bool
-        If True, z-score standardization before PCA/clustering.
     hdbscan_min_samples : int
     hdbscan_min_cluster_size : int
     umap : int
@@ -184,7 +181,14 @@ def run_clustering(
 
     # Standardize + PCA
     Xs, _ = standardize(X, with_mean=True, with_std=True)
-    Xp, _ = run_pca(Xs, n_components=int(pca))
+    n_samples, n_features = Xs.shape
+    max_pca = min(n_samples, n_features)
+    requested_pca = int(pca)
+    if requested_pca > 0:
+        if requested_pca > max_pca or requested_pca < 1:
+            logger.warning(f"Requested PCA components ({requested_pca}) is invalid because it should be between 0 and min(n_samples,n_features)={max_pca}. Setting it to {max_pca//2}.")
+            requested_pca = max_pca // 2
+    Xp, _ = run_pca(Xs, n_components=requested_pca)
     
     # Cluster
     if algo == "kmeans":
@@ -290,8 +294,6 @@ def main():
     ap.add_argument("--umap", type=int, default=0, help="UMAP components for viz (0 to skip; typically 2).")
     ap.add_argument("--min-conf", type=float, default=0.0,
                     help="Drop cells with type_prob below this threshold (0 disables).")
-    ap.add_argument("--standardize", action="store_true",
-                    help="Standardize features before clustering.")
     args = ap.parse_args()
 
     # Load
@@ -315,7 +317,6 @@ def main():
                     algo=args.algo, 
                     k=args.k, 
                     pca=args.pca, 
-                    standardize=args.standardize, 
                     hdbscan_min_samples=args.min_samples, 
                     hdbscan_min_cluster_size=args.min_cluster_size,
                     umap=args.umap,
