@@ -139,6 +139,7 @@ def make_feature_from_row(row, contour_tile_xy, slide_name, model_name, model_ve
         "model_version": str(model_version),
         "anet_class_label": class_label,                 # same as model_label
         "slide": str(slide_name),
+        "supervised_cluster_id": row.get("type", None)  # Added the supervised cluster id for later analysis
     }
 
     return {
