@@ -127,6 +127,148 @@ def cluster_hdbscan(X, min_samples=10, min_cluster_size=50):
     return y_remap, None
 
 
+
+# ------------------------- Public in-memory APIs -------------------------
+
+def run_clustering(
+    df,
+    algo="kmeans",
+    k=6,
+    pca=50,
+    standardize=True,
+    hdbscan_min_samples=10,
+    hdbscan_min_cluster_size=50,
+    umap=0,
+    output=None
+):
+    """
+    Cluster a DataFrame of cell rows in memory, adding cluster columns.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Must contain embedding columns named e_0..e_{D-1}.
+    algo : {"kmeans", "hdbscan"}
+        Clustering algorithm. Use "kmeans" if you need exactly K clusters.
+    k : int
+        Number of clusters for KMeans.
+    pca : int
+        PCA dimensionality (0 to skip).
+    standardize : bool
+        If True, z-score standardization before PCA/clustering.
+    hdbscan_min_samples : int
+    hdbscan_min_cluster_size : int
+    umap : int
+        UMAP dimensionality (0 to skip).
+    output : str
+        Path to save output files.
+
+    Returns
+    -------
+    df_out : pandas.DataFrame
+        Copy of input with added:
+          - cluster_id (int)
+          - cluster_label (str)
+    Xp : np.ndarray
+        The reduced embedding matrix after PCA.
+    """
+    df = df.copy()
+
+    # Embedding matrix
+    emb_cols = find_embedding_columns(df)
+    X = df[emb_cols].to_numpy(dtype=np.float32)
+
+    # Standardize + PCA
+    Xs, _ = standardize(X, with_mean=True, with_std=True)
+    Xp, _ = run_pca(Xs, n_components=int(pca))
+    
+    # Cluster
+    if algo == "kmeans":
+        labels, centroids = cluster_kmeans(Xp, k=int(k))
+    elif algo == "hdbscan":
+        labels, centroids = cluster_hdbscan(Xp, min_samples=int(hdbscan_min_samples), min_cluster_size=int(hdbscan_min_cluster_size))
+    else:
+        raise ValueError(f"Unknown algo: {algo}")
+
+    df["cluster_id"] = labels
+    df["cluster_label"] = df["cluster_id"].apply(lambda v: f"Cluster {v}" if v > 0 else "Noise")
+
+
+    # Saving 
+    if output:
+
+        save_dir = os.path.splitext(output)[0] + "_assets"
+
+        # UMAP (diagnostic)
+        if umap > 0:
+            Xu, _ = run_umap(Xp, n_components=int(umap))
+
+            os.makedirs(save_dir, exist_ok=True)
+            if Xu is not None:
+                plot_umap_scatter(Xu, np.zeros(len(Xu)), os.path.join(save_dir, "umap_raw.png"), "UMAP (uncolored)")
+
+            # UMAP colored
+            if Xu is not None:
+                plot_umap_scatter(Xu, labels, os.path.join(save_dir, "umap_clusters.png"), "UMAP (colored by cluster)")
+
+
+
+        # Save centroids (KMeans)
+        save_cluster_centroids(save_dir, centroids)
+
+        # Save dataframe 
+        ensure_dir(output)
+        out_is_csv = output.lower().endswith(".csv")
+        if out_is_csv:
+            out_path = output if output.lower().endswith(".csv") else output + ".csv"
+            df.to_csv(out_path, index=False)
+        else:
+            out_path = output if output.lower().endswith(".parquet") else output + ".parquet"
+            df.to_parquet(out_path, index=False)
+
+        # Save metadata
+        meta = {
+            "algo": algo,
+            "k": int(k),
+            "min_samples": int(hdbscan_min_samples),
+            "min_cluster_size": int(hdbscan_min_cluster_size),
+            "pca": int(pca),
+            "umap": int(umap),
+            "n_rows": int(len(df)),
+            "n_embed_dims": int(len(emb_cols)),
+        }
+        with open(os.path.join(save_dir, "run_meta.json"), "w") as f:
+            json.dump(meta, f, indent=2)
+
+        logging.info(f"Wrote clustered table to: {out_path}")
+        logging.info(f"Diagnostics in: {save_dir}")
+
+
+def cluster_rows(
+    rows,
+    **kwargs,
+):
+    """
+    Convenience wrapper: accept a list of dict rows (like build_rows_for_saving output),
+    turn into a DataFrame, and call cluster_df_in_memory(...).
+
+    Parameters
+    ----------
+    rows : list[dict]
+        One row per cell. Must include embedding columns e_0..e_{D-1}.
+    kwargs : forwarded to cluster_df_in_memory
+
+    Returns
+    -------
+    df_out : pandas.DataFrame
+    result : dict
+    """
+    if not rows:
+        raise RuntimeError("Empty 'rows' list; nothing to cluster.")
+    df = pd.DataFrame(rows)
+    return run_clustering(df, **kwargs)
+
+
 # ------------------------- Main pipeline -------------------------
 
 def main():
@@ -141,7 +283,8 @@ def main():
     ap.add_argument("--umap", type=int, default=0, help="UMAP components for viz (0 to skip; typically 2).")
     ap.add_argument("--min-conf", type=float, default=0.0,
                     help="Drop cells with type_prob below this threshold (0 disables).")
-    ap.add_argument("--csv", action="store_true", help="Force CSV output (default inferred by extension).")
+    ap.add_argument("--standardize", action="store_true",
+                    help="Standardize features before clustering.")
     args = ap.parse_args()
 
     # Load
@@ -161,68 +304,16 @@ def main():
     if args.min_conf > 0 and "type_prob" in df.columns:
         df = df[df["type_prob"].astype(float) >= float(args.min_conf)].copy()
 
-    # Embedding matrix
-    emb_cols = find_embedding_columns(df)
-    X = df[emb_cols].to_numpy(dtype=np.float32)
-
-    # Standardize + PCA
-    Xs, _ = standardize(X, with_mean=True, with_std=True)
-    Xp, _ = run_pca(Xs, n_components=int(args.pca))
-
-    # UMAP (diagnostic)
-    Xu, _ = run_umap(Xp, n_components=int(args.umap))
-    save_dir = os.path.splitext(args.output)[0] + "_assets"
-    os.makedirs(save_dir, exist_ok=True)
-    if Xu is not None:
-        plot_umap_scatter(Xu, np.zeros(len(Xu)), os.path.join(save_dir, "umap_raw.png"), "UMAP (uncolored)")
-
-    # Cluster
-    if args.algo == "kmeans":
-        labels, centroids = cluster_kmeans(Xp, k=int(args.k))
-    else:
-        labels, centroids = cluster_hdbscan(Xp,
-                                            min_samples=int(args.min_samples),
-                                            min_cluster_size=int(args.min_cluster_size))
-
-    # Attach labels
-    df = df.copy()
-    df["cluster_id"] = labels
-    df["cluster_label"] = df["cluster_id"].apply(lambda v: f"Cluster {v}" if v > 0 else "Noise")
-
-    # UMAP colored
-    if Xu is not None:
-        plot_umap_scatter(Xu, labels, os.path.join(save_dir, "umap_clusters.png"), "UMAP (colored by cluster)")
-
-    # Save centroids (KMeans)
-    save_cluster_centroids(save_dir, centroids)
-
-    # Save output
-    ensure_dir(args.output)
-    out_is_csv = args.csv or args.output.lower().endswith(".csv")
-    if out_is_csv:
-        out_path = args.output if args.output.lower().endswith(".csv") else args.output + ".csv"
-        df.to_csv(out_path, index=False)
-    else:
-        out_path = args.output if args.output.lower().endswith(".parquet") else args.output + ".parquet"
-        df.to_parquet(out_path, index=False)
-
-    # Meta
-    meta = {
-        "algo": args.algo,
-        "k": int(args.k),
-        "min_samples": int(args.min_samples),
-        "min_cluster_size": int(args.min_cluster_size),
-        "pca": int(args.pca),
-        "umap": int(args.umap),
-        "min_conf": float(args.min_conf),
-        "n_rows": int(len(df)),
-        "n_embed_dims": int(len(emb_cols)),
-    }
-    with open(os.path.join(save_dir, "run_meta.json"), "w") as f:
-        json.dump(meta, f, indent=2)
-
-    logging.info(f"Wrote clustered table to: {out_path}")
-    logging.info(f"Diagnostics in: {save_dir}")
+    run_clustering( df, 
+                    algo=args.algo, 
+                    k=args.k, 
+                    pca=args.pca, 
+                    standardize=args.standardize, 
+                    hdbscan_min_samples=args.min_samples, 
+                    hdbscan_min_cluster_size=args.min_cluster_size,
+                    umap=args.umap,
+                    output=args.output
+                    )
 
 
 if __name__ == "__main__":
