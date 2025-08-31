@@ -97,12 +97,19 @@ def remap_to_consecutive(labels, start=1, noise_label=None):
 def plot_umap_scatter(X2, labels, out_png, title):
     ensure_dir(out_png)
     plt.figure(figsize=(7, 6))
-    plt.scatter(X2[:, 0], X2[:, 1], c=labels, s=4, alpha=0.85)
+    scatter = plt.scatter(X2[:, 0], X2[:, 1], c=labels, s=4, alpha=0.85, cmap="tab10")
     plt.title(title)
     plt.xlabel("UMAP-1")
     plt.ylabel("UMAP-2")
+    # Add legend for cluster ids if plotting clusters
+    if "cluster" in title.lower():
+        unique_labels = np.unique(labels)
+        handles = []
+        for ul in unique_labels:
+            handles.append(plt.Line2D([], [], marker="o", color=scatter.cmap(scatter.norm(ul)), linestyle="", label=f"Cluster {ul}"))
+        plt.legend(handles=handles, title="Cluster IDs", bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()
-    plt.savefig(out_png, dpi=160)
+    plt.savefig(out_png, dpi=160, bbox_inches='tight')
     plt.close()
 
 def save_cluster_centroids(output_dir, centroids):
