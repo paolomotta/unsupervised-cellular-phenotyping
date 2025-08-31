@@ -105,9 +105,6 @@ class CellViTHibouWrapper:
         with cm:
             out = self.model(x, retrieve_tokens=True)
 
-
-        print(out["nuclei_binary_map"].shape)
-
         # ---- Tokens (B, D, Gh, Gw) -> (B, T, D) on CPU float32
         tok_4d = out["tokens"]                  # (1, D, Gh, Gw)
         B, D, Gh, Gw = tok_4d.shape
