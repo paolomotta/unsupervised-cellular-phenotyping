@@ -116,7 +116,7 @@ def make_feature_from_row(row, contour_tile_xy, slide_name, model_name, model_ve
 
     # Build properties
     props = {
-        "id": f"{slide_name}:{tile_i}-{tile_j}-{cid}",   # unique_cell_id
+        "id": f"{tile_i}-{tile_j}-{cid}",                # unique_cell_id
         "model_label": class_label,                      # "Cluster X"
         "model_class_id": class_id,                      # X
         "model_magnification": int(model_magnification),
@@ -165,7 +165,7 @@ def export_df_to_geojson(
 
     for _, row in df.iterrows():
         contour_tile = None
-        if "contour" in df.columns and pd.notna(row["contour"]):
+        if "contour" in df.columns and row["contour"] is not None:
             val = row["contour"]
             if isinstance(val, str):
                 try:
