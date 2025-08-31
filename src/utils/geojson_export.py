@@ -39,6 +39,11 @@ import numpy as np
 import pandas as pd
 import logging
 
+from src.logging_config import configure_logging
+
+configure_logging()
+logger = logging.getLogger(__name__)
+
 
 # -------- IO helpers --------
 
@@ -93,7 +98,7 @@ def ringify(contour_xy):
     """
     arr = np.asarray(contour_xy, dtype=np.float64)
     if arr.ndim != 2 or arr.shape[1] != 2 or arr.shape[0] < 3:
-        logging.warning("Contour must have shape (N,2) with N>=3, got shape %s", arr.shape)
+        logger.warning("Contour must have shape (N,2) with N>=3, got shape %s", arr.shape)
         return []
     if not np.allclose(arr[0], arr[-1]):
         arr = np.vstack([arr, arr[0]])
@@ -205,9 +210,9 @@ def main():
     with open(args.output, "w") as f:
         json.dump(fc, f, indent=2)
 
-    logging.info(f"[done] wrote GeoJSON with {len(features)} features to: {args.output}")
+    logger.info(f"[done] wrote GeoJSON with {len(features)} features to: {args.output}")
     if missing:
-        logging.warning(f"[warn] skipped {missing} rows with missing/invalid contours")
+        logger.warning(f"[warn] skipped {missing} rows with missing/invalid contours")
 
 if __name__ == "__main__":
     main()

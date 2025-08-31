@@ -37,6 +37,12 @@ from sklearn.cluster import KMeans
 import hdbscan
 import umap
 
+from src.logging_config import configure_logging
+import logging
+
+configure_logging()
+logger = logging.getLogger(__name__)
+
 
 # ------------------------- Utilities -------------------------
 
@@ -240,8 +246,8 @@ def run_clustering(
         with open(os.path.join(save_dir, "run_meta.json"), "w") as f:
             json.dump(meta, f, indent=2)
 
-        logging.info(f"Wrote clustered table to: {out_path}")
-        logging.info(f"Diagnostics in: {save_dir}")
+        logger.info(f"Wrote clustered table to: {out_path}")
+        logger.info(f"Diagnostics in: {save_dir}")
 
 
 def cluster_rows(
