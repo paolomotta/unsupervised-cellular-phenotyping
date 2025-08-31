@@ -352,7 +352,7 @@ def build_rows_for_saving(cell_embeds, cell_meta, tile_xywh, tile_index):
         emb = np.asarray(emb, dtype=np.float32).ravel()
         for k, v in enumerate(emb.tolist()):
             row[f"e_{k}"] = float(v)
-        # (Optional) include type/centroid summary:
+        # (Optional) include type/centroid/contour summary:
         meta = cell_meta.get(cid, {})
         if meta.get("type") is not None:
             row["type"] = int(meta["type"])
@@ -361,6 +361,10 @@ def build_rows_for_saving(cell_embeds, cell_meta, tile_xywh, tile_index):
         if meta.get("centroid") is not None:
             cx, cy = meta["centroid"]
             row["centroid_x"] = float(cx); row["centroid_y"] = float(cy)
+        if meta.get("contour") is not None:
+            # Serialize contour as a list of [x, y] pairs
+            contour_arr = np.asarray(meta["contour"], dtype=np.float32)
+            row["contour"] = contour_arr.tolist()
         rows.append(row)
     return rows
 
