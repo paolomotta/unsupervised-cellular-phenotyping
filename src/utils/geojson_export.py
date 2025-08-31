@@ -17,7 +17,8 @@ Export clustered cells to a GeoJSON FeatureCollection with this schema:
     "model_name": "HibouLCellVIT",
     "model_version": "1.0",
     "anet_class_label": "Cluster X",
-    "slide": "slide_name.svs"
+    "slide": "slide_name.svs",
+    "supervised_type": Y 
   }
 }
 
