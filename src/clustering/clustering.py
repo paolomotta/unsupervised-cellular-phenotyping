@@ -175,8 +175,6 @@ def run_clustering(
         Copy of input with added:
           - cluster_id (int)
           - cluster_label (str)
-    Xp : np.ndarray
-        The reduced embedding matrix after PCA.
     """
     df = df.copy()
 
@@ -248,6 +246,9 @@ def run_clustering(
 
         logger.info(f"Wrote clustered table to: {out_path}")
         logger.info(f"Diagnostics in: {save_dir}")
+
+
+    return df
 
 
 def cluster_rows(
