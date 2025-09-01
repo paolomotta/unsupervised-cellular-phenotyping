@@ -1,5 +1,6 @@
 import argparse 
 import logging
+import os
 
 from src.data.wsi_reader import WSIReader
 from src.data.tiling import generate_tiles, pad_to_size
@@ -7,6 +8,7 @@ from src.models import CellViTHibouWrapper
 from src.clustering.clustering import cluster_rows
 from src.utils.geojson_export import export_df_to_geojson
 from src.embedding.embedding_extraction import per_tile_cell_embeddings, build_rows_for_saving
+from src.utils.cluster_analysis import load_inputs, evaluate
 
 from src.logging_config import configure_logging
 configure_logging()
@@ -107,6 +109,14 @@ def main():
         model_magnification=args.magnification,
         output_path=args.output
     )
+
+
+    # 7. Running cluster analysis
+    logger.info("Running cluster analysis...")
+    df = load_inputs(args.output)
+    save_dir = os.path.join(os.path.dirname(args.output), "cluster_analysis")
+    evaluate(df, outdir=save_dir, plot=True)
+    logger.info(f"Cluster analysis saved at {save_dir}.")
 
     logger.info("Pipeline complete.")
 
