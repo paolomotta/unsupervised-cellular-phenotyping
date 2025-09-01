@@ -61,9 +61,8 @@ import numpy as np
 import pandas as pd
 from scipy.optimize import linear_sum_assignment
 from sklearn import metrics
-
-# Optional plotting (enabled by --plot)
 import matplotlib.pyplot as plt
+from src.logging_config import configure_logging
 
 logger = logging.getLogger(__name__)
 
@@ -637,13 +636,17 @@ def main() -> None:
     - Runs overall evaluation,
     - Prints a concise metric summary and the optimal cluster→class mapping.
     """
+
+    # Set up logging
+    configure_logging()
+
     args = parse_args()
     df = load_inputs(args.input)
 
     overall = evaluate(df, outdir=args.outdir, plot=args.plot)
 
     # Console summary (quick human check without opening files)
-    logger.info("\n=== Overall Metrics ===")
+    logger.info("=== Overall Metrics ===")
     for k, v in overall["metrics"].items():
         # Robust formatting for floats; don't crash on non-floats
         try:
@@ -651,7 +654,7 @@ def main() -> None:
         except Exception:
             logger.info(f"{k:>28s}: {v}")
 
-    logger.info("\nOptimal cluster→class mapping:")
+    logger.info("Optimal cluster→class mapping:")
     for c, s in overall["optimal_cluster_to_supervised_mapping"].items():
         logger.info(f"  cluster {c} -> class {s}")
 

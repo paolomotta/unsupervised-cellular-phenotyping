@@ -39,7 +39,6 @@ Note: Functions are pure and stateless. No I/O here; keep I/O in scripts.
 
 import numpy as np
 import cv2
-import torch
 
 
 # ---------------------- Geometry helpers ----------------------

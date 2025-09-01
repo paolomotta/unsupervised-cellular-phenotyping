@@ -40,7 +40,6 @@ import umap
 from src.logging_config import configure_logging
 import logging
 
-configure_logging()
 logger = logging.getLogger(__name__)
 
 
@@ -302,6 +301,9 @@ def main():
     ap.add_argument("--min-conf", type=float, default=0.0,
                     help="Drop cells with type_prob below this threshold (0 disables).")
     args = ap.parse_args()
+
+    # Set up logging 
+    configure_logging()
 
     # Load
     ext = os.path.splitext(args.input)[1].lower()
