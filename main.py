@@ -113,7 +113,7 @@ def main():
 
     # 7. Running cluster analysis
     logger.info("Running cluster analysis...")
-    df = load_inputs(args.output)
+    df = load_inputs([args.output])
     save_dir = os.path.join(os.path.dirname(args.output), "cluster_analysis")
     evaluate(df, outdir=save_dir, plot=True)
     logger.info(f"Cluster analysis saved at {save_dir}.")
