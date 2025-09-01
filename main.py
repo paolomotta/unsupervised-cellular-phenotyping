@@ -9,6 +9,7 @@ from src.clustering.clustering import cluster_rows
 from src.utils.geojson_export import export_df_to_geojson
 from src.embedding.embedding_extraction import per_tile_cell_embeddings, build_rows_for_saving
 from src.utils.cluster_analysis import load_inputs, evaluate
+from src.utils.roi_visualization import generate_roi_visualizations
 
 from src.logging_config import configure_logging
 configure_logging()
@@ -33,6 +34,7 @@ def parse_args():
     parser.add_argument("--model-name", default="HibouLCellVIT")
     parser.add_argument("--model-version", default="1.0")
     parser.add_argument("--magnification", type=float, default=40.0, help="Magnification level.")
+    parser.add_argument("--roi", type=str, help="Path to the ROI GeoJSON file. If not provided, it won't generate the visualizations.")
     return parser.parse_args()
 
 
@@ -117,6 +119,12 @@ def main():
     save_dir = os.path.join(os.path.dirname(args.output), "cluster_analysis")
     evaluate(df, outdir=save_dir, plot=True)
     logger.info(f"Cluster analysis saved at {save_dir}.")
+
+    # 8. Generate ROI visualizations
+    if args.roi:
+        logger.info("Generating ROI visualizations...")
+        save_dir = os.path.join(os.path.dirname(args.output), "roi_visualization")
+        generate_roi_visualizations(svs_path=args.input, roi_path=args.roi, cells_path=args.output, outdir=save_dir)
 
     logger.info("Pipeline complete.")
 
