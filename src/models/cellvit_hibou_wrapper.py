@@ -3,7 +3,6 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from torchvision import transforms as T
-import cv2
 from hibou.hibou import CellViTHibou
 
 
