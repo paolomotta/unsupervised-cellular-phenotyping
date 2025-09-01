@@ -643,17 +643,17 @@ def main() -> None:
     overall = evaluate(df, outdir=args.outdir, plot=args.plot)
 
     # Console summary (quick human check without opening files)
-    print("\n=== Overall Metrics ===")
+    logger.info("\n=== Overall Metrics ===")
     for k, v in overall["metrics"].items():
         # Robust formatting for floats; don't crash on non-floats
         try:
-            print(f"{k:>28s}: {float(v):.4f}")
+            logger.info(f"{k:>28s}: {float(v):.4f}")
         except Exception:
-            print(f"{k:>28s}: {v}")
+            logger.info(f"{k:>28s}: {v}")
 
-    print("\nOptimal cluster→class mapping:")
+    logger.info("\nOptimal cluster→class mapping:")
     for c, s in overall["optimal_cluster_to_supervised_mapping"].items():
-        print(f"  cluster {c} -> class {s}")
+        logger.info(f"  cluster {c} -> class {s}")
 
 
 if __name__ == "__main__":
