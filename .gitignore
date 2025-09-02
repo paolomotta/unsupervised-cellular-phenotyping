@@ -211,5 +211,4 @@ __marimo__/
 *.svs 
 *.json 
 *.geojson
-*.GEO
 dev
