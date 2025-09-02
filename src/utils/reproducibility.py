@@ -22,12 +22,6 @@ def set_seed(seed: int = 42) -> None:
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    # PyTorch >= 1.8
-    try:
-        torch.use_deterministic_algorithms(True)
-    except Exception:
-        logger.warning("Deterministic algorithms not fully supported in this PyTorch version.")
-
     os.environ["PYTHONHASHSEED"] = str(seed)
 
     logger.info(f"Random seed set to {seed}")
