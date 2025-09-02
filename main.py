@@ -11,6 +11,7 @@ from src.embedding.embedding_extraction import per_tile_cell_embeddings, build_r
 from src.utils.cluster_analysis import load_inputs, evaluate
 from src.utils.roi_visualization import generate_roi_visualizations
 from src.logging_config import configure_logging
+from src.utils.reproducibility import set_seed
 
 
 def parse_args():
@@ -44,6 +45,9 @@ def main():
 
     # Set up logging
     configure_logging(level=args.log_level)
+
+    # Set the seed
+    set_seed(42)
 
     logging.info(f"Processing WSI: {args.input}")
 
