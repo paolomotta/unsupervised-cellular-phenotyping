@@ -64,8 +64,6 @@ from sklearn import metrics
 import matplotlib.pyplot as plt
 from src.logging_config import configure_logging
 
-logger = logging.getLogger(__name__)
-
 # --------------------------------------------------------------------------- #
 #                                 I/O Helpers                                  #
 # --------------------------------------------------------------------------- #
@@ -151,8 +149,8 @@ def _extract_records(features: list[dict[str, Any]]) -> pd.DataFrame:
 
         if cluster_id is None or supervised is None:
             # Skip malformed or incomplete entries
-            logger.warning(f"Skipping feature with missing fields for cell ID {props.get('id')}")
-            logger.debug(f"Feature properties skipped: {feat}")
+            logging.warning(f"Skipping feature with missing fields for cell ID {props.get('id')}")
+            logging.debug(f"Feature properties skipped: {feat}")
             continue
 
         rows.append(
@@ -626,6 +624,9 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Save a contingency heatmap (PNG).",
     )
+
+    p.add_argument("--log-level", default="INFO", help="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL).")
+
     return p.parse_args()
 
 
@@ -637,26 +638,27 @@ def main() -> None:
     - Prints a concise metric summary and the optimal cluster→class mapping.
     """
 
-    # Set up logging
-    configure_logging()
-
     args = parse_args()
+
+    # Set up logging
+    configure_logging(level=args.log_level)
+
     df = load_inputs(args.input)
 
     overall = evaluate(df, outdir=args.outdir, plot=args.plot)
 
     # Console summary (quick human check without opening files)
-    logger.info("=== Overall Metrics ===")
+    logging.info("=== Overall Metrics ===")
     for k, v in overall["metrics"].items():
         # Robust formatting for floats; don't crash on non-floats
         try:
-            logger.info(f"{k:>28s}: {float(v):.4f}")
+            logging.info(f"{k:>28s}: {float(v):.4f}")
         except Exception:
-            logger.info(f"{k:>28s}: {v}")
+            logging.info(f"{k:>28s}: {v}")
 
-    logger.info("Optimal cluster→class mapping:")
+    logging.info("Optimal cluster→class mapping:")
     for c, s in overall["optimal_cluster_to_supervised_mapping"].items():
-        logger.info(f"  cluster {c} -> class {s}")
+        logging.info(f"  cluster {c} -> class {s}")
 
 
 if __name__ == "__main__":

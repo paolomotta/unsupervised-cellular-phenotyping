@@ -40,9 +40,6 @@ import umap
 from src.logging_config import configure_logging
 import logging
 
-logger = logging.getLogger(__name__)
-
-
 # ------------------------- Utilities -------------------------
 
 def ensure_dir(path):
@@ -192,7 +189,7 @@ def run_clustering(
     requested_pca = int(pca)
     if requested_pca > 0:
         if requested_pca > max_pca or requested_pca < 1:
-            logger.warning(f"Requested PCA components ({requested_pca}) is invalid because it should be between 0 and min(n_samples,n_features)={max_pca}. Setting it to {max_pca//2}.")
+            logging.warning(f"Requested PCA components ({requested_pca}) is invalid because it should be between 0 and min(n_samples,n_features)={max_pca}. Setting it to {max_pca//2}.")
             requested_pca = max_pca // 2
     Xp, _ = run_pca(Xs, n_components=requested_pca)
     
@@ -254,8 +251,8 @@ def run_clustering(
         with open(os.path.join(save_dir, "run_meta.json"), "w") as f:
             json.dump(meta, f, indent=2)
 
-        logger.info(f"Wrote clustered table to: {out_path}")
-        logger.info(f"Diagnostics in: {save_dir}")
+        logging.info(f"Wrote clustered table to: {out_path}")
+        logging.info(f"Diagnostics in: {save_dir}")
 
 
     return df
@@ -300,10 +297,11 @@ def main():
     ap.add_argument("--umap", type=int, default=0, help="UMAP components for viz (0 to skip; typically 2).")
     ap.add_argument("--min-conf", type=float, default=0.0,
                     help="Drop cells with type_prob below this threshold (0 disables).")
+    ap.add_argument("--log-level", default="INFO", help="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL).")
     args = ap.parse_args()
 
-    # Set up logging 
-    configure_logging()
+    # Configure logging
+    configure_logging(level=args.log_level)
 
     # Load
     ext = os.path.splitext(args.input)[1].lower()

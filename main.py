@@ -10,10 +10,7 @@ from src.utils.geojson_export import export_df_to_geojson
 from src.embedding.embedding_extraction import per_tile_cell_embeddings, build_rows_for_saving
 from src.utils.cluster_analysis import load_inputs, evaluate
 from src.utils.roi_visualization import generate_roi_visualizations
-
 from src.logging_config import configure_logging
-configure_logging()
-logger = logging.getLogger(__name__)
 
 
 def parse_args():
@@ -35,6 +32,7 @@ def parse_args():
     parser.add_argument("--model-version", default="1.0")
     parser.add_argument("--magnification", type=float, default=40.0, help="Magnification level.")
     parser.add_argument("--roi", type=str, help="Path to the ROI GeoJSON file. If not provided, it won't generate the visualizations.")
+    parser.add_argument("--log_level", default="INFO", help="Logging level.")
     return parser.parse_args()
 
 
@@ -43,7 +41,11 @@ def main():
 
     # Parse arguments
     args = parse_args()
-    logger.info(f"Processing WSI: {args.input}")
+
+    # Set up logging
+    configure_logging(level=args.log_level)
+
+    logging.info(f"Processing WSI: {args.input}")
 
     # 1. Read WSI
     wsi_reader = WSIReader(args.input)
@@ -51,11 +53,11 @@ def main():
 
 
     # 2. Generate tiles
-    logger.info(f"Generating tiles with size {args.tile_size} and stride {args.stride}...")
+    logging.info(f"Generating tiles with size {args.tile_size} and stride {args.stride}...")
     tiles = generate_tiles(h, w, tile_size=args.tile_size, stride=args.stride)
 
     # 3. Load the model 
-    logger.info(f"Loading model from checkpoint: {args.checkpoint}...")
+    logging.info(f"Loading model from checkpoint: {args.checkpoint}...")
     model = CellViTHibouWrapper(ckpt_path=args.checkpoint, 
                                 device=args.device, 
                                 input_size=args.tile_size, 
@@ -64,26 +66,26 @@ def main():
                                 magnification=args.magnification)
 
     # 4. Run inference 
-    logger.info(f"Running inference on {len(tiles)} tiles...")
+    logging.info(f"Running inference on {len(tiles)} tiles...")
     all_rows = []
     for tile in tiles:
 
-        logger.debug(f"Processing tile at {tile.xywh}...")
+        logging.debug(f"Processing tile at {tile.xywh}...")
 
         x, y, tw, th = tile.xywh
         tile_img = wsi_reader.read_region(x, y, tw, th)
         # Pad if needed
         if tile_img.shape[0] != args.tile_size or tile_img.shape[1] != args.tile_size:
-            logger.debug(f"Padding tile from {tile_img.shape} to {(args.tile_size, args.tile_size)}...")
+            logging.debug(f"Padding tile from {tile_img.shape} to {(args.tile_size, args.tile_size)}...")
             tile_img, pad = pad_to_size(tile_img, args.tile_size, args.tile_size)
             tile.pad = pad
 
         # Model inference
-        logger.debug(f"Running model inference...")
+        logging.debug(f"Running model inference...")
         tokens, instance_map = model.forward_tile(tile_img)
 
         # Embedding extraction
-        logger.debug(f"Extracting embeddings...")
+        logging.debug(f"Extracting embeddings...")
         cell_embeds, cell_meta = per_tile_cell_embeddings(
             tok=tokens,
             cells=instance_map,
@@ -91,18 +93,18 @@ def main():
             input_size=args.tile_size
         )
         # Build rows
-        logger.debug(f"Building dictionaries...")
+        logging.debug(f"Building dictionaries...")
         rows = build_rows_for_saving(cell_embeds, cell_meta, tile.xywh, tile.index)
         all_rows.extend(rows)
     
 
     # 5. Aggregate and cluster
-    logger.info(f"Aggregating and clustering results...")
+    logging.info(f"Aggregating and clustering results...")
     df = cluster_rows(all_rows, algo="kmeans", k=args.k, pca=args.pca)
 
 
     # 6. Export to GeoJSON
-    logger.info(f"Exporting results to GeoJSON: {args.output}...")
+    logging.info(f"Exporting results to GeoJSON: {args.output}...")
     export_df_to_geojson(
         df,
         slide_name=args.input,
@@ -114,19 +116,19 @@ def main():
 
 
     # 7. Running cluster analysis
-    logger.info("Running cluster analysis...")
+    logging.info("Running cluster analysis...")
     df = load_inputs([args.output])
     save_dir = os.path.join(os.path.dirname(args.output), "cluster_analysis")
     evaluate(df, outdir=save_dir, plot=True)
-    logger.info(f"Cluster analysis saved at {save_dir}.")
+    logging.info(f"Cluster analysis saved at {save_dir}.")
 
     # 8. Generate ROI visualizations
     if args.roi:
-        logger.info("Generating ROI visualizations...")
+        logging.info("Generating ROI visualizations...")
         save_dir = os.path.join(os.path.dirname(args.output), "roi_visualization")
         generate_roi_visualizations(svs_path=args.input, roi_path=args.roi, cells_path=args.output, outdir=save_dir)
 
-    logger.info("Pipeline complete.")
+    logging.info("Pipeline complete.")
 
 
 if __name__ == "__main__":

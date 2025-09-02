@@ -40,8 +40,6 @@ from shapely.geometry.base import BaseGeometry
 from src.logging_config import configure_logging
 import logging
 
-logger = logging.getLogger(__name__)
-
 
 # -----------------------------------------------------------------------------
 # I/O helpers
@@ -346,19 +344,19 @@ def generate_roi_visualizations(
     cells_path = Path(cells_path)
     outdir = Path(outdir)
 
-    logger.info("Loading ROI from %s", roi_path)
+    logging.info("Loading ROI from %s", roi_path)
     roi_geom = load_roi(roi_path)
 
-    logger.info("Loading cells from %s", cells_path)
+    logging.info("Loading cells from %s", cells_path)
     cells = load_cells(cells_path)
 
-    logger.info("Filtering and clipping cells to ROI")
+    logging.info("Filtering and clipping cells to ROI")
     cells_roi = subset_and_clip_to_roi(cells, roi_geom, simplify_tolerance=simplify_tolerance)
 
-    logger.info("Reading WSI region covering ROI from %s", svs_path)
+    logging.info("Reading WSI region covering ROI from %s", svs_path)
     region_img, sx, sy, x0, y0, level, downsample = read_region_for_roi(svs_path, roi_geom)
 
-    logger.info("Transforming polygons to region pixel space (level=%d, ~%.0fx)", level, downsample)
+    logging.info("Transforming polygons to region pixel space (level=%d, ~%.0fx)", level, downsample)
     cells_px = cells_roi.copy()
     cells_px["geometry"] = transform_level0_to_region(cells_roi.geometry, x0, y0, sx, sy)
 
@@ -366,7 +364,7 @@ def generate_roi_visualizations(
     clusters_png = outdir / "roi_clusters_on_wsi.png"
     supervised_png = outdir / "roi_supervised_on_wsi.png"
 
-    logger.info("Rendering clusters overlay → %s", clusters_png)
+    logging.info("Rendering clusters overlay → %s", clusters_png)
     plot_cells_over_region_image(
         region_img,
         cells_px,
@@ -377,7 +375,7 @@ def generate_roi_visualizations(
         alpha=0.5,
     )
 
-    logger.info("Rendering supervised overlay → %s", supervised_png)
+    logging.info("Rendering supervised overlay → %s", supervised_png)
     plot_cells_over_region_image(
         region_img,
         cells_px,
@@ -388,7 +386,7 @@ def generate_roi_visualizations(
         alpha=0.5,
     )
 
-    logger.info(f"Saved visualizations to {outdir}.")
+    logging.info(f"Saved visualizations to {outdir}.")
     return clusters_png, supervised_png
 
 
@@ -410,15 +408,18 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="Optional polygon simplification tolerance (pixels). Try 0.5-2.0 for speed.",
     )
+    p.add_argument("--log-level", default="INFO", help="Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL).")
     return p.parse_args()
 
 
 def main() -> None:
-    # Configure logging early
-    configure_logging()
-    logger.info("Starting ROI visualization job")
 
     args = parse_args()
+
+    # Configure logging early
+    configure_logging(level=args.log_level)
+    logging.info("Starting ROI visualization job")
+
     generate_roi_visualizations(
         svs_path=args.svs,
         roi_path=args.roi,
