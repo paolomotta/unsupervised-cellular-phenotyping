@@ -1,21 +1,15 @@
 [build-system]
-requires = [
-    "hatchling",
-    "hatch-vcs",
-]
+requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "unsupervised_cellular_phenotyping"  
+name = "unsupervised_cellular_phenotyping"
+version = "0.1.0"              
 requires-python = ">=3.9"
 description = "Install repo as a top-level package"
-dynamic = ["version"]
 
 [tool.hatch.build.targets.wheel]
 include = ["src"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src"]
-
-[tool.hatch.version]
-source = "vcs"
