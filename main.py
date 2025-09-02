@@ -12,6 +12,8 @@ from src.utils.cluster_analysis import load_inputs, evaluate
 from src.utils.roi_visualization import generate_roi_visualizations
 from src.logging_config import configure_logging
 from src.utils.reproducibility import set_seed
+from dotenv import load_dotenv
+from huggingface_hub import hf_hub_download
 
 
 def parse_args():
@@ -48,6 +50,23 @@ def main():
 
     # Set the seed
     set_seed(42)
+
+    # Download the checkpoint file if not present 
+    if not os.path.exists(args.checkpoint):
+        logging.info(f"Checkpoint {args.checkpoint} not found locally. Downloading from Hugging Face Hub...")
+        load_dotenv()  # Load environment variables from .env file
+        hf_token = os.getenv("HF_ACCESS_TOKEN")
+        if hf_token is None:
+            logging.error("Hugging Face access token not found in environment variables.")
+            return
+        args.checkpoint = hf_hub_download(
+            repo_id="histai/cellvit-hibou-l",
+            filename=os.path.basename(args.checkpoint),   # Extract filename from the provided path
+            local_dir=os.path.dirname(args.checkpoint),    # Save in the same directory as specified
+            token=hf_token
+        )
+        logging.info(f"Checkpoint downloaded to {args.checkpoint}.")
+
 
     logging.info(f"Processing WSI: {args.input}")
 
