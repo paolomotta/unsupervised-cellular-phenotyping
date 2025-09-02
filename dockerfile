@@ -26,13 +26,8 @@ RUN pip install --upgrade pip \
 
 # Install your package (pyproject makes repo importable)
 COPY pyproject.toml .
-COPY src/ ./src/
-COPY main.py .
 RUN pip install --no-deps .
 
-# Bring the rest (configs, scripts, etc.)
-COPY data/ ./data/
-COPY hibou ./hibou/
 
 # Define the entrypoint and CMD
 ENTRYPOINT ["python", "main.py"]
