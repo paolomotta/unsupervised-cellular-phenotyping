@@ -23,7 +23,7 @@ cd unsupervised-cellular-phenotyping
 
 ### 2. Download Data and Model Weights
 
-Download the reference Whole Slide Image from the GDC Cancer Portal and place it in the `data/` directory:
+Download the reference Whole Slide Image from the GDC Cancer Portal and place the `.svs` file it in the `data/` directory:
 
 - **WSI File:** [TCGA-V5-A7RE-11A-01-TS1.57401526-EF9E-49AC-8FF6-B4F9652311CE.svs](https://portal.gdc.cancer.gov/files/f9147f06-2902-4a64-b293-5dbf9217c668)
 
@@ -98,6 +98,39 @@ docker run --rm \
 ```
 
 > **Note:** Adjust the paths to your input WSI file and checkpoint as needed. Results will be saved in the directory specified by `--output`.
+
+
+#### Example: Run the Pipeline with a Python Environment
+
+If you prefer not to use Docker, you can run the pipeline directly in your local Python environment. Follow these steps:
+
+1. **Create a Python Environment**
+	 - Use Conda, venv, or another tool to create an environment with Python 3.10.
+	 - Example with Conda:
+		 ```bash
+		 conda create -n cell-phenotyping python=3.10
+		 conda activate cell-phenotyping
+		 ```
+
+2. **Install Dependencies**
+	 - Install all required packages from `requirements.txt`:
+		 ```bash
+		 pip install -r requirements.txt
+		 ```
+
+3. **Run the Pipeline**
+	 - Execute the main script with the desired arguments:
+		 ```bash
+		 python main.py \
+			 --input data/TCGA-V5-A7RE-11A-01-TS1.57401526-EF9E-49AC-8FF6-B4F9652311CE.svs \
+			 --output results/prediction.geojson \
+			 --checkpoint data/cellvit-hibou-l.pth \
+			 --pca 50 \
+			 --roi "data/TCGA-V~1.GEO"
+		 ```
+
+> **Tip:** You can use all the same command-line arguments as described above for Docker. Adjust paths as needed for your setup.
+
 
 #### Output Structure
 
