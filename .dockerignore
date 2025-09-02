@@ -1,0 +1,57 @@
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Python cache / venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.egg-info
+.eggs
+.env
+.venv
+venv/
+ENV/
+env/
+
+# OS / IDE junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and temp files
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Build outputs
+dist/
+build/
+*.egg
+*.tar.gz
+
+# Test/coverage artifacts
+.coverage
+.tox/
+.pytest_cache/
+
+# Docker itself
+Dockerfile*
+.dockerignore
+
+# Local config / secrets
+*.pem
+*.key
+*.crt
+*.envrc
+.env.local
+
+# Personal dev space
+dev/

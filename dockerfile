@@ -19,20 +19,21 @@ ENV HOME=/home/app \
     NUMBA_CACHE_DIR=/tmp/numba_cache
 RUN mkdir -p /home/app /tmp/matplotlib /tmp/numba_cache && chmod -R 777 /home/app /tmp/matplotlib /tmp/numba_cache
 
-# 1) Install Python deps from requirements.txt (best layer caching)
+# Install Python deps from requirements.txt (best layer caching)
 COPY requirements.txt .
 RUN pip install --upgrade pip \
  && pip install --root-user-action=ignore -r requirements.txt
 
-# 2) Install your package (pyproject makes repo importable)
+# Install your package (pyproject makes repo importable)
 COPY pyproject.toml .
 COPY src/ ./src/
 COPY main.py .
 RUN pip install --no-deps .
 
-# 3) Bring the rest (configs, scripts, etc.)
-COPY . .
+# Bring the rest (configs, scripts, etc.)
+COPY data/ ./data/
+COPY hibou ./hibou/
 
-# 4) Define the entrypoint and CMD
+# Define the entrypoint and CMD
 ENTRYPOINT ["python", "main.py"]
 CMD ["--help"]
