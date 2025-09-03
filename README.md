@@ -27,7 +27,6 @@ Download the reference Whole Slide Image from the GDC Cancer Portal and place th
 
 - **WSI File:** [TCGA-V5-A7RE-11A-01-TS1.57401526-EF9E-49AC-8FF6-B4F9652311CE.svs](https://portal.gdc.cancer.gov/files/f9147f06-2902-4a64-b293-5dbf9217c668)
 
-Download the CellViT-Hibou-L model weights from [HuggingFace](https://huggingface.co/histai/cellvit-hibou-l) and place them in `data/` as well.
 
 ### 3. Create HuggingFace Access Token
 
@@ -36,7 +35,7 @@ To download the required model weights, you need a HuggingFace access token:
 1. Visit the [HuggingFace token page](https://huggingface.co/docs/hub/security-tokens) and create an access token if you don’t already have one.
 2. Copy your token into the `env.example` file, then rename it to `.env`.
 3. If you encounter issues downloading the weights, refer to the [model documentation](https://huggingface.co/histai/cellvit-hibou-l) for manual download instructions.
-4. If you download the weights manually, place them in the `data/` folder.
+4. If you download the weights [manually](https://huggingface.co/histai/cellvit-hibou-l), place them in the `data/` folder.
 
 > **Note:** Authentication (via access token or SSH) is always required to access the model weights.
 
