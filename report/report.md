@@ -263,5 +263,21 @@ From this table, it is evident that the third cluster is the purest, consisting 
 
 
 
-### 1. Quantitative Concordance Analysis
+### 2. Visual & Spatial Analysis
+
+<div style="display: flex; gap: 16px; align-items: flex-start;">
+    <div style="flex: 1; text-align: center;">
+        <img src="results/roi_visualization/roi_clusters_on_wsi.png" alt="Clusters visualized on WSI" style="max-width: 100%; height: auto;">
+        <br>
+        <span><strong>Clusters visualized on WSI</strong></span>
+    </div>
+    <div style="flex: 1; text-align: center;">
+        <img src="results/roi_visualization/roi_supervised_on_wsi.png" alt="Supervised classes visualized on WSI" style="max-width: 100%; height: auto;">
+        <br>
+        <span><strong>Supervised classes visualized on WSI</strong></span>
+    </div>
+</div>
+
+
+### 3. Probing the Meaning of Disagreements
 
