@@ -89,6 +89,7 @@ The main pipeline is executed via `main.py`, which serves as the entrypoint in t
 | `--algo`          | No       | `kmeans`          | Clustering algorithm. Choices: [`kmeans`, `gmm`]  |
 | `--k`             | No       | `6`               | Number of clusters for KMeans.                    |
 | `--pca`           | No       | `50`              | Number of PCA components before clustering.       |
+| `--umap`          | No       | `False`           | Wheter to perform UMAP dimensionality reduction for 2D visualization.       |
 | `--filter-background-class`  | No       | `False`              | Wheter to filter out the background class from model's predictions.       |
 | `--model-name`    | No       | `HibouLCellVIT`   | Model name written in output metadata.            |
 | `--model-version` | No       | `1.0`             | Model version written in output metadata.         |

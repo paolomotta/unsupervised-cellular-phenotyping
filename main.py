@@ -32,6 +32,7 @@ def parse_args():
     parser.add_argument("--algo", default="kmeans", choices=["kmeans", "gmm"], help="Clustering algorithm.")
     parser.add_argument("--k", type=int, default=6, help="Number of clusters (KMeans).")
     parser.add_argument("--pca", type=int, default=50, help="PCA components.")
+    parser.add_argument("--umap", action="store_true", help="UMAP dimensionality reduction for plotting.")
     parser.add_argument("--model-name", default="HibouLCellVIT")
     parser.add_argument("--model-version", default="1.0")
     parser.add_argument("--magnification", type=float, default=40.0, help="Magnification level.")
@@ -126,7 +127,8 @@ def main():
 
     # 5. Aggregate and cluster
     logging.info(f"Aggregating and clustering results...")
-    df = cluster_rows(all_rows, algo=args.algo, k=args.k, pca=args.pca)
+    save_dir = os.path.join(os.path.dirname(args.output), "umap_plots")
+    df = cluster_rows(all_rows, algo=args.algo, k=args.k, pca=args.pca, umap=2 if args.umap else 0, umap_output=save_dir)
 
 
     # 6. Export to GeoJSON

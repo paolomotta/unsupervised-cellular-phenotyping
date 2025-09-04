@@ -157,6 +157,7 @@ def run_clustering(
     hdbscan_min_samples=10,
     hdbscan_min_cluster_size=50,
     umap=0,
+    umap_output=None,
     output=None
 ):
     """
@@ -176,6 +177,8 @@ def run_clustering(
     hdbscan_min_cluster_size : int
     umap : int
         UMAP dimensionality (0 to skip).
+    umap_output : str
+        Path to save UMAP plots (scatter, colored and uncolored). If None, skip saving.
     output : str
         Path to save output files.
 
@@ -216,21 +219,26 @@ def run_clustering(
     df["cluster_id"] = labels
     df["cluster_label"] = df["cluster_id"].apply(lambda v: f"Cluster {v}" if v > 0 else "Noise")
 
-    # Saving 
-    if output:
-        save_dir = os.path.splitext(output)[0] + "_assets"
 
-        # UMAP (diagnostic)
-        if umap > 0:
+    # UMAP for visualization 
+    if umap > 0:
+        if not umap_output:
+            logging.warning("UMAP output path not provided; skipping UMAP plots saving.")
+        else:
             Xu, _ = run_umap(Xp, n_components=int(umap))
 
-            os.makedirs(save_dir, exist_ok=True)
+            os.makedirs(umap_output, exist_ok=True)
             if Xu is not None:
-                plot_umap_scatter(Xu, np.zeros(len(Xu)), os.path.join(save_dir, "umap_raw.png"), "UMAP (uncolored)")
+                plot_umap_scatter(Xu, np.zeros(len(Xu)), os.path.join(umap_output, "umap_raw.png"), "UMAP (uncolored)")
 
             # UMAP colored
             if Xu is not None:
-                plot_umap_scatter(Xu, labels, os.path.join(save_dir, "umap_clusters.png"), "UMAP (colored by cluster)")
+                plot_umap_scatter(Xu, labels, os.path.join(umap_output, "umap_clusters.png"), "UMAP (colored by cluster)")
+
+
+    # Saving 
+    if output:
+        save_dir = os.path.splitext(output)[0] + "_assets"
 
         # Save centroids (KMeans/GMM)
         save_cluster_centroids(save_dir, centroids)
