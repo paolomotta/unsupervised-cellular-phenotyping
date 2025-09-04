@@ -116,7 +116,6 @@ Per-cell embeddings and associated metadata from all tiles are concatenated into
 
 For the following discussion and results, please keep in mind this mapping of the supervised classes:
 
-* **0 → Background**
 * **1 → Neoplastic Cell**
 * **2 → Inflammatory Cell**
 * **3 → Connective Cell**
@@ -220,23 +219,24 @@ Where:
 
 ### 1. Quantitative Concordance Analysis
 
-The confusion matrix comparing the six unsupervised clusters to the six supervised classes predicted by the model is:
 
-| cluster_id |   0 |    1 |   2 |    3 | 4 |    5 |
-|------------|----:|-----:|----:|-----:|--:|-----:|
-| 1          | 125 | 1098 | 344 | 1503 | 4 |  803 |
-| 2          |  50 |  747 |  29 |  143 | 1 | 1488 |
-| 3          |  77 |   64 | 186 | 1710 | 4 |   33 |
-| 4          |  76 |  142 | 195 | 1167 | 2 |  181 |
-| 5          |  55 |   47 |  98 |  656 | 8 |   21 |
-| 6          |  29 |   66 |  13 |   94 | 0 |  109 |
+The confusion matrix comparing the five unsupervised clusters to the five supervised classes predicted by the model is:
 
-- **Adjusted Rand Index (ARI)**: 0.108 (close to 0, indicating weak agreement between unsupervised clusters and supervised classes).
-- **Normalized Mutual Information (NMI)**: 0.172 (low, showing limited shared information).
-- **Homogeneity**: 0.188 (clusters are not pure; each contains a mix of classes).
-- **Completeness**: 0.158 (classes are split across multiple clusters).
+| cluster_id |   1 |   2 |   3 |  4 |   5 |
+|------------|----:|----:|----:|---:|----:|
+| 1          | 336 | 364 | 3091|  1 | 140 |
+| 2          | 882 |  22 |  113|  1 |1666 |
+| 3          | 637 | 135 |  526|  0 | 562 |
+| 4          | 254 | 172 |  794|  3 | 243 |
+| 5          |  55 | 172 |  749| 14 |  24 |
+
+- **Adjusted Rand Index (ARI)**: 0.239 (close to 0, indicating weak-to-moderate agreement between unsupervised clusters and supervised classes).
+- **Normalized Mutual Information (NMI)**: 0.221 (low, showing limited shared information).
+- **Homogeneity**: 0.246 (clusters are not pure; each contains a mix of classes).
+- **Completeness**: 0.200 (classes are split across multiple clusters).
 
 These metrics indicate that unsupervised clustering does not strongly align with supervised labels. Clusters are mixed and classes are fragmented, reflecting the challenges of unsupervised phenotyping in complex tissue images.
+
 
 In addition to global metrics, per-cluster summary statistics were computed to provide further insight into cluster composition and purity. For each cluster, the following statistics are reported:
 
@@ -249,18 +249,16 @@ In addition to global metrics, per-cluster summary statistics were computed to p
 
 The table below summarizes these statistics for each cluster:
 
-
 | cluster_id | size | top_supervised | top_count | purity | entropy | normalized_entropy |
 |------------|------|---------------|-----------|--------|---------|--------------------|
-| 1          | 3877 | 3             | 1503      | 0.39   | 1.38    | 0.77               |
-| 2          | 2458 | 5             | 1488      | 0.61   | 0.97    | 0.54               |
-| 3          | 2074 | 3             | 1710      | 0.82   | 0.68    | 0.38               |
-| 4          | 1763 | 3             | 1167      | 0.66   | 1.10    | 0.61               |
-| 5          | 885  | 3             | 656       | 0.74   | 0.93    | 0.52               |
-| 6          | 311  | 5             | 109       | 0.35   | 1.41    | 0.79               |
+| 1          | 3932 | 3             | 3091      | 0.79   | 0.74    | 0.46               |
+| 2          | 2684 | 5             | 1666      | 0.62   | 0.84    | 0.52               |
+| 3          | 1860 | 1             | 637       | 0.34   | 1.28    | 0.79               |
+| 4          | 1466 | 3             | 794       | 0.54   | 1.20    | 0.74               |
+| 5          | 1014 | 3             | 749       | 0.74   | 0.83    | 0.52               |
 
 
-From this table, it is evident that the third cluster is the purest, consisting of approximately 82% connective cells. This suggests that, despite overall weak concordance, certain clusters may still capture meaningful biological structure.
+From this table, it is evident that the first cluster is the purest, consisting of approximately 78% connective cells. This suggests that, despite overall weak concordance, certain clusters may still capture meaningful biological structure.
 
 
 
@@ -290,12 +288,12 @@ This makes biological sense: **neoplastic cells arise from epithelial cells**, a
 
 #### **Issue A**
 
-From my results, we can see that cluster 1, with a total size of 3877, is mixed between connective cells (1503, 38%), neoplastic cells (1098, 28%) and ephitelial cells (803, 20%). This is quite an heterogeneous cluster, confirmed also by an overall purity score of 0.38 and a normalized entropy of 0.77.
+From my results, we can see that cluster 3, with a total size of 1860, is mixed between neoplastic cells (637, 34%), ephitelial cells (562, 30%) and connective cells (526, 28%). This is quite an heterogeneous cluster, confirmed also by an overall purity score of 0.34 and a normalized entropy of 0.79.
 
 From a biological point of view, this cluster could somehow catch the tumor-stroma interface zones, where neoplastic, connective tissue and epithelial tissue intermingle. This is because cancer cells don't live in isolation, but they could grow from a microenvironment that includes:
 - **Connective tissue (stroma)**: fibroblasts around the tumor.
 - **Normal epithelium**: the healthy cells that tumors originally come from.
-- **Immune cells**: that often infiltrate the tumor.
+- **Tumor epithelium**: the tumor cells that can original from epithelial ones.
 
 Therefore, at the tumor boundary, these different cell types are physically mixed together. A patch in that region may contain cells that look similar or overlappping. An unsupervised algorithm might cluster them together, because it is picking up signals from cells that are adjacent or interacting biologically, not just isolated.
 
@@ -305,26 +303,24 @@ From a technical point of view, we need to remind that vision transformers work 
 
 #### **Issue B**
 
-Connective cells (supervised type 3) are not concentrated in one cluster, but the yare spread across clusters 1 (28%), 3 (32%), 4 (22%) and 5 (12%). From a biological point of view, this could reflect **stromal heterogeneity**. Connective tissue is not uniform and in cancer slides there could be:
-- Pure fibroblast zones (cluster 3 is dominated by 82% by connective cells)
-- Stroma infiltrated by immune cells (cluster 4 has a mix of connective and inflammatory cells)
-- Mixed tumor stroma interface, where cancer-associated fibroblasts are influenced by tumor cells (cluster 1 has a mix of connective and neoplastic cells)
+Neoplastic cells (supervised type 1) are not concentrated in one cluster, but they are spread across clusters 1 (15%), 2 (40%), 3 (29%) and 4 (12%). From a biological point of view, this could reflect **intra-tumoral heterogeneity**. Tumor cells, although all derived from epithelium, do not form a uniform population. Instead, they vary in morphology, proliferative activity, and interaction with the surrounding stroma and immune cells.
+For example, neoplastic cells located in the tumor core may appear more compact and differentiated, whereas those at the invasive front often show irregular shapes and transitional features as they interact with connective tissue and inflammatory infiltrates. Unsupervised clustering may therefore be capturing distinct subpopulations of tumor cells, each representing a different biological state or microenvironmental niche. This heterogeneity is compressed into a single “Neoplastic” class by the supervised model, but emerges more clearly in the unsupervised grouping.
 
-Although the supervised classifier groups all of them as "Connective", the unsupervised clustering is probably splitting them into meaningful sub-groups that correspond to different microenvironments.
+Although the supervised classifier groups all of them as "Neoplastic", the unsupervised clustering is probably splitting them into meaningful sub-groups that correspond to different microenvironments.
 
-From a technical point of view, the embeddings may be sensitive to local density, texture or straining variation, leading to artificial splits in stormal tissue. For example, differences in collagen density of staininig intensity could make morphologically similar fibroblasts look different in feature space.\
+From a technical point of view, neoplastic and epithelial cells are morphologically very similar, since tumors originate from epithelium. Patch-based embeddings may therefore fail to capture the subtle differences between normal and tumor epithelium, causing part of the neoplastic population to group with epithelial-like features. Second, variability in staining intensity can introduce artificial variation in embeddings, leading the algorithm to separate neoplastic cells into different clusters. Finally, cell boundary overlap in crowded tumor regions may produce mixed embeddings containing both neoplastic and stromal features, further contributing to cluster splitting.
 
 #### Final Conclusion 
 
 Based on my analysis, I believe the **pre-defined supervised labels** are the more immediately insightful representation for a pathologist. These labels (Neoplastic, Epithelial, Connective, Inflammatory, Dead, Background) map directly to the categories that pathologists already use in their daily workflow. They are interpretable, stable across slides, and actionable for diagnostic purposes, such as estimating tumor burden, identifying immune infiltration, or quantifying necrosis.
 
-By contrast, my unsupervised clusters showed **low quantitative concordance** with supervised labels (ARI ≈ 0.108, AMI ≈ 0.171, optimal mapping accuracy ≈ 0.40), meaning they are not reliable enough to stand alone for clinical decision-making. Cluster assignments varied in purity, and the same cluster ID could correspond to different biological contexts in different slides, which reduces their utility for direct interpretation.
+By contrast, my unsupervised clusters showed **low quantitative concordance** with supervised labels (ARI ≈ 0.239, AMI ≈ 0.221, optimal mapping accuracy ≈ 0.50), meaning they are not reliable enough to stand alone for clinical decision-making. Cluster assignments varied in purity, and the same cluster ID could correspond to different biological contexts in different slides, which reduces their utility for direct interpretation.
 
 However, the unsupervised representation adds exploratory insight that supervised labels flatten. In particular:
 
 - **Issue A**: A highly mixed cluster revealed the tumor–stroma interface, where neoplastic, epithelial, and connective cells interact. This region is biologically crucial for invasion and may include cancer-associated fibroblasts (CAFs).
 
-**Issue B**: The supervised class “Connective” was split across multiple clusters, uncovering stromal heterogeneity. Distinct stromal niches emerged, including pure fibroblast stroma, immune-rich stroma, and tumor-adjacent stroma, which the supervised classifier compresses into a single “Connective” label.
+**Issue B**: The supervised class “Neoplastic” was split across multiple clusters, uncovering intra-tumoral heterogeneity. 
 
 These findings suggest that while supervised labels remain the **primary, pathologist-facing representation**, unsupervised clustering can serve as a complementary overlay, flagging regions of biological complexity and generating hypotheses for further investigation. A side-by-side visualization of supervised and unsupervised maps provides the most comprehensive view: one grounded in diagnostic categories, the other highlighting tissue substructure and microenvironmental diversity.
 
