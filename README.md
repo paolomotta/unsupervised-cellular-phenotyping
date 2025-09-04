@@ -86,6 +86,7 @@ The main pipeline is executed via `main.py`, which serves as the entrypoint in t
 | `--tile-size`     | No       | `256`             | Tile size for WSI tiling.                         |
 | `--stride`        | No       | `256`             | Stride between tiles.                             |
 | `--device`        | No       | `cuda`            | Device for inference (`cuda` or `cpu`).           |
+| `--algo`          | No       | `kmeans`          | Clustering algorithm. Choices: [`kmeans`, `gmm`]  |
 | `--k`             | No       | `6`               | Number of clusters for KMeans.                    |
 | `--pca`           | No       | `50`              | Number of PCA components before clustering.       |
 | `--model-name`    | No       | `HibouLCellVIT`   | Model name written in output metadata.            |

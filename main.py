@@ -29,6 +29,7 @@ def parse_args():
     parser.add_argument("--tile-size", type=int, default=256, help="Tile size.")
     parser.add_argument("--stride", type=int, default=256, help="Tile stride.")
     parser.add_argument("--device", default="cuda", help="Device for inference.")
+    parser.add_argument("--algo", default="kmeans", choices=["kmeans", "gmm"], help="Clustering algorithm.")
     parser.add_argument("--k", type=int, default=6, help="Number of clusters (KMeans).")
     parser.add_argument("--pca", type=int, default=50, help="PCA components.")
     parser.add_argument("--model-name", default="HibouLCellVIT")
@@ -123,7 +124,7 @@ def main():
 
     # 5. Aggregate and cluster
     logging.info(f"Aggregating and clustering results...")
-    df = cluster_rows(all_rows, algo="kmeans", k=args.k, pca=args.pca)
+    df = cluster_rows(all_rows, algo=args.algo, k=args.k, pca=args.pca)
 
 
     # 6. Export to GeoJSON
