@@ -104,6 +104,7 @@ Per-cell embeddings and associated metadata from all tiles are concatenated into
 #### 2.Potential Failure Points
 - **KMeans assumptions**: KMeans presumes that clusters are approximately spherical and of similar size in PCA space. If the true phenotypes are imbalanced or exhibit non-convex shapes, KMeans may fail to accurately capture them. Alternative methods, such as Gaussian Mixture Models, can accommodate elliptical or non-convex cluster structures.
 - **Curse of dimensionality**: Clustering in high-dimensional spaces is challenging due to the curse of dimensionality. While PCA mitigates this issue by reducing dimensionality, the selected latent space may still be too high for optimal clustering performance.
+- **Strong Imbalance Dataset**: Standard clustering algorithms, such as K-Means, are prone to placing more centroids in or near large clusters, leading to bias against smaller, minority clusters. In our scenario, class 0 (background) and 4 (dead cells) are a minority compared to other huge clusters, therefore the clustering algorithms could be tempted to learn other features than the one that are predicted by the model.
 
 
 
