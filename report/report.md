@@ -106,10 +106,6 @@ Per-cell embeddings and associated metadata from all tiles are concatenated into
 - **Curse of dimensionality**: Clustering in high-dimensional spaces is challenging due to the curse of dimensionality. While PCA mitigates this issue by reducing dimensionality, the selected latent space may still be too high for optimal clustering performance.
 - **Strong Imbalance Dataset**: Standard clustering algorithms, such as K-Means, are prone to placing more centroids in or near large clusters, leading to bias against smaller, minority clusters. In our scenario, class 0 (background) and 4 (dead cells) are a minority compared to other huge clusters, therefore the clustering algorithms could be tempted to learn other features than the one that are predicted by the model.
 
-
-
-Great, I can help you complete that section of your report. Here’s a detailed write-up with explanations and formulas for each clustering evaluation metric, framed in Markdown for your report:
-
 ---
 
 ## Part 2: Creative Evaluation & Cluster Analysis
