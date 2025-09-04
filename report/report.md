@@ -312,7 +312,7 @@ From a technical point of view, neoplastic and epithelial cells are morphologica
 
 #### Final Conclusion 
 
-Based on my analysis, I believe the **pre-defined supervised labels** are the more immediately insightful representation for a pathologist. These labels (Neoplastic, Epithelial, Connective, Inflammatory, Dead, Background) map directly to the categories that pathologists already use in their daily workflow. They are interpretable, stable across slides, and actionable for diagnostic purposes, such as estimating tumor burden, identifying immune infiltration, or quantifying necrosis.
+Based on my analysis, I believe the **pre-defined supervised labels** are the more immediately insightful representation for a pathologist. These labels (Neoplastic, Epithelial, Connective, Inflammatory, Dead) map directly to the categories that pathologists already use in their daily workflow. They are interpretable, stable across slides, and actionable for diagnostic purposes, such as estimating tumor burden, identifying immune infiltration, or quantifying necrosis.
 
 By contrast, my unsupervised clusters showed **low quantitative concordance** with supervised labels (ARI ≈ 0.239, AMI ≈ 0.221, optimal mapping accuracy ≈ 0.50), meaning they are not reliable enough to stand alone for clinical decision-making. Cluster assignments varied in purity, and the same cluster ID could correspond to different biological contexts in different slides, which reduces their utility for direct interpretation.
 
