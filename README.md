@@ -109,7 +109,10 @@ docker run --rm \
 	--input data/TCGA-V5-A7RE-11A-01-TS1.57401526-EF9E-49AC-8FF6-B4F9652311CE.svs \
 	--output results/prediction.geojson \
 	--checkpoint data/cellvit-hibou-l.pth \
-	--pca 50 \
+	--pca 200 \
+	--algo "gmm" \
+	--umap \
+	--filter-background-class \
 	--roi "data/TCGA-V~1.GEO"
 ```
 
@@ -141,7 +144,10 @@ If you prefer not to use Docker, you can run the pipeline directly in your local
 			 --input data/TCGA-V5-A7RE-11A-01-TS1.57401526-EF9E-49AC-8FF6-B4F9652311CE.svs \
 			 --output results/prediction.geojson \
 			 --checkpoint data/cellvit-hibou-l.pth \
-			 --pca 50 \
+			 --pca 200 \
+			 --algo "gmm" \
+			 --umap \
+			 --filter-background-class \
 			 --roi "data/TCGA-V~1.GEO"
 		 ```
 
@@ -155,6 +161,7 @@ After running the pipeline, results will be generated in the output directory (e
 - `prediction.geojson` — GeoJSON file containing clustering results.
 - `cluster_analysis/` — Folder with confusion matrix, ARI, and other clustering analysis.
 - `roi_visualization/` — Visualizations of clustering and supervised types for the selected ROI.
+- `umap_plots/`        — Visualization of clusters in 2D using UMAP.
 
 ---
 
