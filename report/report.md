@@ -72,8 +72,6 @@ The final per-cell embeddings are the rows of $Z$ corresponding to cells. Each e
 
 - **Inference efficiency**: Extracting the [CLS] token for each cell would require performing inference for every cell within a tile, which is computationally prohibitive for WSIs containing large numbers of cells.
 
-- **Matrix conditioning**: In cases of excessive cell overlap or noisy segmentation, the overlap matrix $W$ may become ill-conditioned due to highly correlated or nearly linearly dependent columns. Ridge regularization addresses this issue.
-
 
 #### 3. Trade-offs and Potential Failure Points
 
@@ -81,6 +79,8 @@ The final per-cell embeddings are the rows of $Z$ corresponding to cells. Each e
 - **Partial cell coverage**: The current approach does not account for cells that are partially cut by tile boundaries, which may affect embedding accuracy for these cells.
 
 - **Linear assumption**: The methodology assumes a linear relationship between token, cell, and background embeddings. In practice, this relationship may be more complex and not fully captured by the linear model.
+
+- **Matrix conditioning**: In cases of excessive cell overlap or noisy segmentation, the overlap matrix $W$ may become ill-conditioned due to highly correlated or nearly linearly dependent columns. Ridge regularization addresses this issue, but it can still be a problem.
 
 
 ### Clustering Strategy 
@@ -281,4 +281,44 @@ From this table, it is evident that the third cluster is the purest, consisting 
 
 
 ### 3. Probing the Meaning of Disagreements
+
+#### **Issue A**
+
+From my results, we can see that cluster 1, with a total size of 3877, is mixed between connective cells (1503, 38%), neoplastic cells (1098, 28%) and ephitelial cells (803, 20%). This is quite an heterogeneous cluster, confirmed also by an overall purity score of 0.38 and a normalized entropy of 0.77.
+
+From a biological point of view, this cluster could somehow catch the tumor-stroma interface zones, where neoplastic, connective tissue and epithelial tissue intermingle. This is because cancer cells don't live in isolation, but they could grow from a microenvironment that includes:
+- **Connective tissue (stroma)**: fibroblasts around the tumor.
+- **Normal epithelium**: the healthy cells that tumors originally come from.
+- **Immune cells**: that often infiltrate the tumor.
+
+Therefore, at the tumor boundary, these different cell types are physically mixed together. A patch in that region may contain cells that look similar or overlappping. An unsupervised algorithm might cluster them together, because it is picking up signals from cells that are adjacent or interacting biologically, not just isolated.
+
+
+From a technical point of view, we need to remind that vision transformers work on image patches. If a patch contains part of tumor cell plus part of a connective or epithelial neighbor, the embedding may become a blend between different embeddings. That can lead to artificial mixing that the proposed pipeline was not able to separate correctly.
+
+
+#### **Issue B**
+
+Connective cells (supervised type 3) are not concentrated in one cluster, but the yare spread across clusters 1 (28%), 3 (32%), 4 (22%) and 5 (12%). From a biological point of view, this could reflect **stromal heterogeneity**. Connective tissue is not uniform and in cancer slides there could be:
+- Pure fibroblast zones (cluster 3 is dominated by 82% by connective cells)
+- Stroma infiltrated by immune cells (cluster 4 has a mix of connective and inflammatory cells)
+- Mixed tumor stroma interface, where cancer-associated fibroblasts are influenced by tumor cells (cluster 1 has a mix of connective and neoplastic cells)
+
+Although the supervised classifier groups all of them as "Connective", the unsupervised clustering is probably splitting them into meaningful sub-groups that correspond to different microenvironments.
+
+From a technical point of view, the embeddings may be sensitive to local density, texture or straining variation, leading to artificial splits in stormal tissue. For example, differences in collagen density of staininig intensity could make morphologically similar fibroblasts look different in feature space.\
+
+#### Final Conclusion 
+
+Based on my analysis, I believe the **pre-defined supervised labels** are the more immediately insightful representation for a pathologist. These labels (Neoplastic, Epithelial, Connective, Inflammatory, Dead, Background) map directly to the categories that pathologists already use in their daily workflow. They are interpretable, stable across slides, and actionable for diagnostic purposes, such as estimating tumor burden, identifying immune infiltration, or quantifying necrosis.
+
+By contrast, my unsupervised clusters showed **low quantitative concordance** with supervised labels (ARI ≈ 0.108, AMI ≈ 0.171, optimal mapping accuracy ≈ 0.40), meaning they are not reliable enough to stand alone for clinical decision-making. Cluster assignments varied in purity, and the same cluster ID could correspond to different biological contexts in different slides, which reduces their utility for direct interpretation.
+
+However, the unsupervised representation adds exploratory insight that supervised labels flatten. In particular:
+
+- **Issue A**: A highly mixed cluster revealed the tumor–stroma interface, where neoplastic, epithelial, and connective cells interact. This region is biologically crucial for invasion and may include cancer-associated fibroblasts (CAFs).
+
+**Issue B**: The supervised class “Connective” was split across multiple clusters, uncovering stromal heterogeneity. Distinct stromal niches emerged, including pure fibroblast stroma, immune-rich stroma, and tumor-adjacent stroma, which the supervised classifier compresses into a single “Connective” label.
+
+These findings suggest that while supervised labels remain the **primary, pathologist-facing representation**, unsupervised clustering can serve as a complementary overlay, flagging regions of biological complexity and generating hypotheses for further investigation. A side-by-side visualization of supervised and unsupervised maps provides the most comprehensive view: one grounded in diagnostic categories, the other highlighting tissue substructure and microenvironmental diversity.
 
