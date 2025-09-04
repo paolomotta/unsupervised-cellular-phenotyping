@@ -58,6 +58,9 @@ unsupervised-cellular-phenotyping/
 ├── pyproject.toml              # Python project metadata
 ├── requirements.txt            # Python dependencies
 ├── README.md                   # Project documentation
+├── report                      # Folder containing results obtained and report for my main experiment
+│   └── results                 # Folder containing the outcome of the cluster analysis  
+│   └── report.md               # Markdown file where I explain my approach and evaluate the results
 ├── data/                       # Place WSI files and model weights here
 │   └── TCGA-V~1.GEO            # Example Region of Interest for plotting
 ├── hibou/                      # Submodule: Hibou repository
