@@ -85,31 +85,31 @@ The final per-cell embeddings are the rows of $Z$ corresponding to cells. Each e
 
 ### Clustering Strategy 
 
+
+> **⚠️ Important Note: Filtering the Background Class**
+>
+> Among the supervised classes, one is labeled as **"Background"**. This class is typically used for negative samples in the instance segmentation map and does **not** correspond to a true cellular phenotype. To ensure that the clustering analysis focuses exclusively on biologically meaningful cell types, I explicitly **filtered out all background-class instances** during embedding extraction and clustering. As a result, the analysis and all reported metrics consider **only the five true cell classes** (excluding background).
+
+
 #### 1. Method Description 
 
-After obtaining refined 1024-dimensional embeddings for each nucleus, the next step is to group cells into phenotypic clusters. The clustering process is designed to produce six unsupervised clusters, as follows:
+After obtaining refined 1024-dimensional embeddings for each nucleus, the next step is to group cells into phenotypic clusters. The clustering process is designed to produce five unsupervised clusters, as follows:
 
 ##### **Embedding aggregation**
 Per-cell embeddings and associated metadata from all tiles are concatenated into a unified table.
 
 ##### **Preprocessing**
 - **Standardization (z-score):** Each embedding dimension is centered and scaled to unit variance, preventing dimensions with larger numeric ranges from disproportionately influencing the clustering.
-- **Dimensionality reduction (PCA):** Embeddings are projected onto the top ~50 principal components. PCA serves to reduce noise and redundancy while preserving most of the variance, thereby enhancing clustering efficiency and stability.
+- **Dimensionality reduction (PCA):** Embeddings are projected onto the top ~200 principal components. PCA serves to reduce noise and redundancy while preserving most of the variance, thereby enhancing clustering efficiency and stability.
 
 ##### **Clustering algorithm**
-- **KMeans** with $K=6$ is employed by default.
-- Each cell embedding is assigned to one of six centroids, resulting in cluster IDs ranging from 1 to 6.
+- **Gaussian Mixture Model (GMM)** with $K=5$ has been used for the clustering.
+- Each cell embedding is assigned to one of five centroids, resulting in cluster IDs ranging from 1 to 5.
 - Cluster labels are reordered such that the largest cluster is designated as Cluster 1, the second largest as Cluster 2, and so forth, ensuring consistent cluster ordering.
 
 #### 2.Potential Failure Points
-- **KMeans assumptions**: KMeans presumes that clusters are approximately spherical and of similar size in PCA space. If the true phenotypes are imbalanced or exhibit non-convex shapes, KMeans may fail to accurately capture them. Alternative methods, such as Gaussian Mixture Models, can accommodate elliptical or non-convex cluster structures.
 - **Curse of dimensionality**: Clustering in high-dimensional spaces is challenging due to the curse of dimensionality. While PCA mitigates this issue by reducing dimensionality, the selected latent space may still be too high for optimal clustering performance.
-- **Strong Imbalance Dataset**: Standard clustering algorithms, such as K-Means, are prone to placing more centroids in or near large clusters, leading to bias against smaller, minority clusters. In our scenario, class 0 (background) and 4 (dead cells) are a minority compared to other huge clusters, therefore the clustering algorithms could be tempted to learn other features than the one that are predicted by the model.
-
-
-
-Great, I can help you complete that section of your report. Here’s a detailed write-up with explanations and formulas for each clustering evaluation metric, framed in Markdown for your report:
-
+- **Strong Imbalance Dataset**: Standard clustering algorithms, such as K-Means or GMM, are prone to placing more centroids in or near large clusters, leading to bias against smaller, minority clusters. In our scenario, class 0 (background) and 4 (dead cells) are a minority compared to other huge clusters, therefore the clustering algorithms could be tempted to learn other features than the one that are predicted by the model.
 ---
 
 ## Part 2: Creative Evaluation & Cluster Analysis
