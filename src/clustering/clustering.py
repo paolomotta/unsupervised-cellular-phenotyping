@@ -33,6 +33,7 @@ import logging
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
+from sklearn.mixture import GaussianMixture
 
 import hdbscan
 import umap
@@ -125,6 +126,7 @@ def cluster_kmeans(X, k, seed=42):
     y_remap, _ = remap_to_consecutive(y, start=1)
     return y_remap, km.cluster_centers_
 
+
 def cluster_hdbscan(X, min_samples=10, min_cluster_size=50):
     """HDBSCAN density-based clustering. Labels with noise = -1. Centroids undefined."""
     clusterer = hdbscan.HDBSCAN(min_samples=int(min_samples),
@@ -135,9 +137,17 @@ def cluster_hdbscan(X, min_samples=10, min_cluster_size=50):
     y_remap, _ = remap_to_consecutive(y, start=1, noise_label=-1)
     return y_remap, None
 
+def cluster_gmm(X, k, seed=42):
+    """Gaussian Mixture Model clustering. Returns labels (1..K) and centroids (means)."""
+    gm = GaussianMixture(n_components=k, random_state=seed)
+    y = gm.fit_predict(X)
+    y_remap, _ = remap_to_consecutive(y, start=1)
+    return y_remap, gm.means_
+
 
 
 # ------------------------- Public in-memory APIs -------------------------
+
 
 def run_clustering(
     df,
@@ -156,10 +166,10 @@ def run_clustering(
     ----------
     df : pandas.DataFrame
         Must contain embedding columns named e_0..e_{D-1}.
-    algo : {"kmeans", "hdbscan"}
-        Clustering algorithm. Use "kmeans" if you need exactly K clusters.
+    algo : {"kmeans", "hdbscan", "gmm"}
+        Clustering algorithm. Use "kmeans" or "gmm" if you need exactly K clusters.
     k : int
-        Number of clusters for KMeans.
+        Number of clusters for KMeans/GMM.
     pca : int
         PCA dimensionality (0 to skip).
     hdbscan_min_samples : int
@@ -192,22 +202,22 @@ def run_clustering(
             logging.warning(f"Requested PCA components ({requested_pca}) is invalid because it should be between 0 and min(n_samples,n_features)={max_pca}. Setting it to {max_pca//2}.")
             requested_pca = max_pca // 2
     Xp, _ = run_pca(Xs, n_components=requested_pca)
-    
+
     # Cluster
     if algo == "kmeans":
         labels, centroids = cluster_kmeans(Xp, k=int(k))
     elif algo == "hdbscan":
         labels, centroids = cluster_hdbscan(Xp, min_samples=int(hdbscan_min_samples), min_cluster_size=int(hdbscan_min_cluster_size))
+    elif algo == "gmm":
+        labels, centroids = cluster_gmm(Xp, k=int(k))
     else:
         raise ValueError(f"Unknown algo: {algo}")
 
     df["cluster_id"] = labels
     df["cluster_label"] = df["cluster_id"].apply(lambda v: f"Cluster {v}" if v > 0 else "Noise")
 
-
     # Saving 
     if output:
-
         save_dir = os.path.splitext(output)[0] + "_assets"
 
         # UMAP (diagnostic)
@@ -222,9 +232,7 @@ def run_clustering(
             if Xu is not None:
                 plot_umap_scatter(Xu, labels, os.path.join(save_dir, "umap_clusters.png"), "UMAP (colored by cluster)")
 
-
-
-        # Save centroids (KMeans)
+        # Save centroids (KMeans/GMM)
         save_cluster_centroids(save_dir, centroids)
 
         # Save dataframe 
@@ -253,7 +261,6 @@ def run_clustering(
 
         logging.info(f"Wrote clustered table to: {out_path}")
         logging.info(f"Diagnostics in: {save_dir}")
-
 
     return df
 
@@ -285,12 +292,13 @@ def cluster_rows(
 
 # ------------------------- Main pipeline -------------------------
 
+
 def main():
     ap = argparse.ArgumentParser(description="Cluster per-cell embeddings.")
     ap.add_argument("--input", required=True, help="Input Parquet/CSV with e_* columns.")
     ap.add_argument("--output", required=True, help="Output Parquet/CSV with cluster labels added.")
-    ap.add_argument("--algo", choices=["kmeans", "hdbscan"], default="kmeans")
-    ap.add_argument("--k", type=int, default=6, help="K for KMeans (default: 6).")
+    ap.add_argument("--algo", choices=["kmeans", "hdbscan", "gmm"], default="kmeans")
+    ap.add_argument("--k", type=int, default=6, help="K for KMeans/GMM (default: 6).")
     ap.add_argument("--min-samples", type=int, default=10, help="HDBSCAN min_samples.")
     ap.add_argument("--min-cluster-size", type=int, default=50, help="HDBSCAN min_cluster_size.")
     ap.add_argument("--pca", type=int, default=50, help="PCA components (0 to skip).")
@@ -320,11 +328,11 @@ def main():
     if args.min_conf > 0 and "type_prob" in df.columns:
         df = df[df["type_prob"].astype(float) >= float(args.min_conf)].copy()
 
-    run_clustering( df, 
-                    algo=args.algo, 
-                    k=args.k, 
-                    pca=args.pca, 
-                    hdbscan_min_samples=args.min_samples, 
+    run_clustering( df,
+                    algo=args.algo,
+                    k=args.k,
+                    pca=args.pca,
+                    hdbscan_min_samples=args.min_samples,
                     hdbscan_min_cluster_size=args.min_cluster_size,
                     umap=args.umap,
                     output=args.output
