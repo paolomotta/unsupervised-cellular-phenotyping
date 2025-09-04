@@ -1,0 +1,22 @@
+{
+  "counts": 10956,
+  "n_clusters": 5,
+  "n_supervised_classes": 5,
+  "metrics": {
+    "adjusted_rand_index": 0.23937605169843967,
+    "adjusted_mutual_info": 0.22072989688940978,
+    "normalized_mutual_info": 0.22115784726479235,
+    "homogeneity": 0.24606746788718406,
+    "completeness": 0.20082786991013432,
+    "v_measure": 0.22115784726479232,
+    "fowlkes_mallows": 0.4597420706937862,
+    "optimal_mapping_accuracy": 0.5093099671412924
+  },
+  "optimal_cluster_to_supervised_mapping": {
+    "1": "3",
+    "2": "5",
+    "3": "1",
+    "4": "2",
+    "5": "4"
+  }
+}

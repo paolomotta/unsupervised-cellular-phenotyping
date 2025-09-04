@@ -209,6 +209,6 @@ __marimo__/
 # Ignore specific files working with this repository
 *.pth
 *.svs 
-*.json 
+launch.json
 *.geojson
 dev
