@@ -280,6 +280,12 @@ From this table, it is evident that the third cluster is the purest, consisting 
 </div>
 
 
+
+When comparing the supervised and unsupervised visualizations, an interesting coherence emerges. The unsupervised method consistently groups **neoplastic** and **epithelial** cells into two main clusters (clusters 1 and 2). Both of these clusters contain a balanced mixture of epithelial and neoplastic cells, suggesting that the unsupervised algorithm is primarily recognizing the shared epithelial origin of these two classes.
+
+This makes biological sense: **neoplastic cells arise from epithelial cells**, and despite their abnormal morphology, they still retain many epithelial features. While the supervised classifier distinguishes them into separate categories (“normal epithelium” vs. “tumor epithelium”), the unsupervised clustering appears to capture a **broader, less granular grouping** that reflects their fundamental similarity. In this sense, the unsupervised clusters provide a coarser but biologically coherent representation: epithelial cells are identified as a single family, whether they are normal or tumor-derived.
+
+
 ### 3. Probing the Meaning of Disagreements
 
 #### **Issue A**
