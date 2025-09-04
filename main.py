@@ -37,6 +37,7 @@ def parse_args():
     parser.add_argument("--magnification", type=float, default=40.0, help="Magnification level.")
     parser.add_argument("--roi", type=str, help="Path to the ROI GeoJSON file. If not provided, it won't generate the visualizations.")
     parser.add_argument("--log_level", default="INFO", help="Logging level.")
+    parser.add_argument("--filter-background-class", action="store_true", help="Whether to filter out background instances (class=0). Default: False.")
     return parser.parse_args()
 
 
@@ -87,7 +88,8 @@ def main():
                                 input_size=args.tile_size, 
                                 patch_size=14, 
                                 use_autocast=True, 
-                                magnification=args.magnification)
+                                magnification=args.magnification,
+                                filter_bg=args.filter_background_class)
 
     # 4. Run inference 
     logging.info(f"Running inference on {len(tiles)} tiles...")

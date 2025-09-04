@@ -37,12 +37,15 @@ class CellViTHibouWrapper:
                  input_size=256, 
                  patch_size=16,
                  use_autocast=True, 
-                 magnification=20):
+                 magnification=20, 
+                 filter_bg=False):
+        
         self.device = device
         self.input_size = int(input_size)
         self.patch_size = int(patch_size)
         self.use_autocast = bool(use_autocast)
         self.magnification = magnification
+        self.filter_bg = bool(filter_bg) # Whether to filter out background instances (class=0)
 
         # TODO: The arguments of the model can also be passed as arguments to initializer. Skipped for simplicity and because only one model available currently.
         self.model = CellViTHibou(
@@ -124,4 +127,29 @@ class CellViTHibouWrapper:
         _, instance_types = self.model.calculate_instance_map(out, magnification=self.magnification)
         cells = instance_types[0] if isinstance(instance_types, (list, tuple)) else instance_types
 
+        # Background classes are not useful for phenotyping, so we can filter them out here
+        if self.filter_bg:
+            cells = self.filter_background_class(cells, bg_class=0)
+
         return tok, cells
+
+
+
+    def filter_background_class(self, cells, bg_class=0):
+        """
+        Remove instances predicted as background (class=bg_class) from cells dictionary.
+
+        Parameters
+        ----------
+        cells : dict of dict
+            As returned by forward_tile().
+        bg_class : int
+            Class index corresponding to background.
+
+        Returns
+        -------
+        filtered_map : dict of dict
+            Instance map with background instances removed.
+        """
+        filtered_map = {k: v for k, v in cells.items() if v.get("type", -1) != bg_class}
+        return filtered_map
