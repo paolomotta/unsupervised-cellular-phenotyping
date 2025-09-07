@@ -13,7 +13,7 @@ Note that I have not used the CellViT and Hibou-L models separately. The motivat
 The repository is structured into modular components, where the main scripts for this first pipeline are:
 
 - **src/data/wsi_reader.py**: Efficiently handles large WSIs using OpenSlide and provides multi-resolution access.
-- **src/data/tiling.py**: Splits WSIs into manageable 224×224 tiles, with optional padding for edge coverage.
+- **src/data/tiling.py**: Splits WSIs into manageable 256×256 tiles, with optional padding for edge coverage.
 - **src/model/cellvit_hibou_wrapper.py**: A thin wrapper around the CellViT-Hibou model, exposing a clean API for segmentation and token retrieval.
 - **src/embedding/embedding_extraction.py**: Implements the strategy for deriving single-cell embeddings from overlapping tokens.
 - **src/clustering/clustering.py**: Clusters embeddings into six groups (1–6) using unsupervised methods (e.g., KMeans).
@@ -38,7 +38,7 @@ For each cell, compute the fraction of each token covered by its mask. This yiel
 An additional column is introduced to account for background coverage:
 
 $$
-f_{t,\text{bg}} = \max\left(0,\, 1 - \sum_{c} f_{t,c}\right)
+f_{t,\text{bg}} = \max\left(0, 1 - \sum_{c} f_{t,c}\right)
 $$
 
 This ensures that any residual tissue signal not assigned to a cell is absorbed into a dedicated background component, preventing contamination of nuclei embeddings.
@@ -320,7 +320,7 @@ However, the unsupervised representation adds exploratory insight that supervise
 
 - **Issue A**: A highly mixed cluster revealed the tumor–stroma interface, where neoplastic, epithelial, and connective cells interact. This region is biologically crucial for invasion and may include cancer-associated fibroblasts (CAFs).
 
-**Issue B**: The supervised class “Connective” was split across multiple clusters, uncovering stromal heterogeneity. Distinct stromal niches emerged, including pure fibroblast stroma, immune-rich stroma, and tumor-adjacent stroma, which the supervised classifier compresses into a single “Connective” label.
+- **Issue B**: The supervised class “Connective” was split across multiple clusters, uncovering stromal heterogeneity. Distinct stromal niches emerged, including pure fibroblast stroma, immune-rich stroma, and tumor-adjacent stroma, which the supervised classifier compresses into a single “Connective” label.
 
 These findings suggest that while supervised labels remain the **primary, pathologist-facing representation**, unsupervised clustering can serve as a complementary overlay, flagging regions of biological complexity and generating hypotheses for further investigation. A side-by-side visualization of supervised and unsupervised maps provides the most comprehensive view: one grounded in diagnostic categories, the other highlighting tissue substructure and microenvironmental diversity.
 
