@@ -258,7 +258,7 @@ The table below summarizes these statistics for each cluster:
 | 5          | 1014 | 3             | 749       | 0.74   | 0.83    | 0.52               |
 
 
-From this table, it is evident that the first cluster is the purest, consisting of approximately 78% connective cells. This suggests that, despite overall weak concordance, certain clusters may still capture meaningful biological structure.
+From this table, it is evident that the first cluster is the purest, consisting of approximately 79% connective cells. This suggests that, despite overall weak concordance, certain clusters may still capture meaningful biological structure.
 
 
 
